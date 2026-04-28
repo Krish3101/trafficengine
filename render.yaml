@@ -2,13 +2,15 @@ services:
   - type: web
     name: traffic-system
     runtime: docker
-    plan: free # or starter
+    plan: free
     envVars:
       - key: PORT
         value: 8080
       - key: DATABASE_URL
-        sync: false # User should provide this in Render dashboard
-      - key: DATABASE_USERNAME
-        sync: false
-      - key: DATABASE_PASSWORD
-        sync: false
+        fromDatabase:
+          name: traffic-db
+          property: connectionString
+
+databases:
+  - name: traffic-db
+    plan: free
