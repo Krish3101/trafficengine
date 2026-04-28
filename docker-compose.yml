@@ -14,10 +14,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=traffic_db
-      - DB_USER=user
-      - DB_PASSWORD=password
+      - DATABASE_URL=postgres://user:password@db:5432/traffic_db
     depends_on:
       - db
