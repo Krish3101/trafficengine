@@ -1,0 +1,14 @@
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+mvnw
+mvnw.cmd
+.git/
+.idea/
+.vscode/
+HELP.md
+Dockerfile
+render.yaml

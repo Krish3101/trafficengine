@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Smart Traffic System</title>
+</head>
+<body>
+
+<h2>Smart Traffic System</h2>
+
+<form action="/process" method="post">
+    <label>Vehicle ID: </label>
+    <input type="text" name="vehicleId" required><br><br>
+
+    <label>Speed: </label>
+    <input type="number" step="0.1" name="speed" required><br><br>
+
+    <label>Zone: </label>
+    <input type="text" name="zone" required><br><br>
+
+    <input type="checkbox" name="emergency">
+    <label>Emergency Vehicle</label><br><br>
+
+    <button type="submit">Process Event</button>
+</form>
+
+<h3 th:text="${result}" style="color: blue;"></h3>
+
+<hr>
+
+<h3>Analytics</h3>
+<p>Total Violations: <span th:text="${totalCount}"></span></p>
+<p>Total Fine Collected: ₹<span th:text="${totalFines}"></span></p>
+
+<h4>Violations by Zone:</h4>
+<ul>
+    <li th:each="entry : ${zoneStats}">
+        <span th:text="${entry.key}"></span> -> <span th:text="${entry.value}"></span>
+    </li>
+</ul>
+
+<hr>
+
+<h3>Violation Records</h3>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Vehicle ID</th>
+        <th>Speed</th>
+        <th>Zone</th>
+        <th>Fine</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="v : ${list}">
+        <td th:text="${v.vehicleId}"></td>
+        <td th:text="${v.speed}"></td>
+        <td th:text="${v.zone}"></td>
+        <td th:text="${'₹' + v.fine}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
