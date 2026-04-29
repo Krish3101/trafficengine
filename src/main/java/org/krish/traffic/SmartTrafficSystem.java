@@ -46,15 +46,18 @@ public class SmartTrafficSystem {
         return repository.count();
     }
 
-    public int getTotalFinesCollected() {
-        return repository.findAll().stream()
-                .map(v -> v.fine)
-                .reduce(0, Integer::sum);
+    public long getTotalFinesCollected() {
+        Long total = repository.sumAllFines();
+        return total == null ? 0L : total;
     }
 
     public Map<String, Long> getZoneWiseAnalytics() {
-        return repository.findAll().stream()
-                .collect(Collectors.groupingBy(v -> v.zone, Collectors.counting()));
+        List<Object[]> results = repository.countViolationsByZone();
+        Map<String, Long> map = new HashMap<>();
+        for (Object[] result : results) {
+            map.put((String) result[0], (Long) result[1]);
+        }
+        return map;
     }
 
     public static class VehicleEvent {

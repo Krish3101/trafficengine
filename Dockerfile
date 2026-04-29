@@ -12,8 +12,6 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Render uses the PORT environment variable
 EXPOSE 8080
 
-# Convert Render's postgres:// URL to Spring's jdbc:postgresql:// before starting
-ENTRYPOINT ["sh", "-c", "if [ -n \"$DATABASE_URL\" ]; then export SPRING_DATASOURCE_URL=${DATABASE_URL/postgres:/jdbc:postgresql:}; fi; java -jar app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,19 +1,26 @@
 version: '3.8'
 services:
   db:
-    image: postgres:15-alpine
+    image: mysql:8.0
     environment:
-      POSTGRES_DB: traffic_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: traffic_db
     ports:
-      - "5432:5432"
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/traffic_db
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/traffic_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - DB_USER=root
+      - DB_PASSWORD=password
     depends_on:
-      - db
+      db:
+        condition: service_healthy

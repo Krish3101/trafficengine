@@ -1,64 +1,122 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Smart Traffic System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-<h2>Smart Traffic System</h2>
+<div class="container">
+    <header>
+        <h1>Smart Traffic System</h1>
+        <p>Real-time traffic violation detection & analytics</p>
+    </header>
 
-<form action="/process" method="post">
-    <label>Vehicle ID: </label>
-    <input type="text" name="vehicleId" required><br><br>
+    <div class="dashboard">
+        <!-- Left Column: Form -->
+        <div class="card form-section">
+            <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Log Vehicle Event
+            </h2>
+            
+            <div th:if="${result != null and !result.isEmpty()}" 
+                 th:class="${result.contains('Saved') ? 'alert alert-success' : 'alert alert-info'}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                <span th:text="${result}"></span>
+            </div>
 
-    <label>Speed: </label>
-    <input type="number" step="0.1" name="speed" required><br><br>
+            <form action="/process" method="post">
+                <div class="form-group">
+                    <label>Vehicle License Plate</label>
+                    <input type="text" name="vehicleId" class="form-control" placeholder="e.g. MH12AB1234" required>
+                </div>
 
-    <label>Zone: </label>
-    <input type="text" name="zone" required><br><br>
+                <div class="form-group">
+                    <label>Speed (km/h)</label>
+                    <input type="number" step="0.1" name="speed" class="form-control" placeholder="0.0" required>
+                </div>
 
-    <input type="checkbox" name="emergency">
-    <label>Emergency Vehicle</label><br><br>
+                <div class="form-group">
+                    <label>Detection Zone</label>
+                    <input type="text" name="zone" class="form-control" placeholder="e.g. Zone-A" required>
+                </div>
 
-    <button type="submit">Process Event</button>
-</form>
+                <div class="checkbox-group">
+                    <input type="checkbox" name="emergency" id="emergency">
+                    <label for="emergency">Emergency Vehicle (Ambulance/Police)</label>
+                </div>
 
-<h3 th:text="${result}" style="color: blue;"></h3>
+                <button type="submit" class="btn">Process Event</button>
+            </form>
+        </div>
 
-<hr>
+        <!-- Right Column: Analytics & Data -->
+        <div class="data-section">
+            <div class="card" style="margin-bottom: 2rem;">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    System Analytics
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" th:text="${totalCount}">0</div>
+                        <div class="stat-label">Total Violations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" th:text="'₹' + ${totalFines}">₹0</div>
+                        <div class="stat-label">Fines Collected</div>
+                    </div>
+                </div>
 
-<h3>Analytics</h3>
-<p>Total Violations: <span th:text="${totalCount}"></span></p>
-<p>Total Fine Collected: ₹<span th:text="${totalFines}"></span></p>
+                <h4>Active Zones:</h4>
+                <div class="zone-stats">
+                    <span th:if="${zoneStats.isEmpty()}" class="text-muted">No data available</span>
+                    <div class="zone-badge" th:each="entry : ${zoneStats}">
+                        <strong th:text="${entry.key}"></strong>: 
+                        <span th:text="${entry.value}"></span> violations
+                    </div>
+                </div>
+            </div>
 
-<h4>Violations by Zone:</h4>
-<ul>
-    <li th:each="entry : ${zoneStats}">
-        <span th:text="${entry.key}"></span> -> <span th:text="${entry.value}"></span>
-    </li>
-</ul>
+            <div class="card">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Recent Violation Records
+                </h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vehicle ID</th>
+                                <th>Speed</th>
+                                <th>Zone</th>
+                                <th>Fine Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${list.isEmpty()}">
+                                <td colspan="4" style="text-align: center; color: var(--text-muted);">No violations logged yet.</td>
+                            </tr>
+                            <tr th:each="v : ${list}">
+                                <td><strong th:text="${v.vehicleId}"></strong></td>
+                                <td th:text="${v.speed} + ' km/h'"></td>
+                                <td th:text="${v.zone}"></td>
+                                <td><span class="badge-fine" th:text="${'₹' + v.fine}"></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<hr>
-
-<h3>Violation Records</h3>
-<table border="1">
-    <thead>
-    <tr>
-        <th>Vehicle ID</th>
-        <th>Speed</th>
-        <th>Zone</th>
-        <th>Fine</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="v : ${list}">
-        <td th:text="${v.vehicleId}"></td>
-        <td th:text="${v.speed}"></td>
-        <td th:text="${v.zone}"></td>
-        <td th:text="${'₹' + v.fine}"></td>
-    </tr>
-    </tbody>
-</table>
-
+<script src="/js/main.js"></script>
 </body>
 </html>

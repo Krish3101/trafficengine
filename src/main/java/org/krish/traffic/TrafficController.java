@@ -41,10 +41,10 @@ public class TrafficController {
             SmartTrafficSystem.ViolationRecord v = result.get(0);
 
             TrafficViolation db = new TrafficViolation();
-            db.vehicleId = v.vehicleId;
-            db.speed = v.speed;
-            db.zone = v.zone;
-            db.fine = v.fine;
+            db.setVehicleId(v.vehicleId);
+            db.setSpeed(v.speed);
+            db.setZone(v.zone);
+            db.setFine(v.fine);
 
             repo.save(db);
             model.addAttribute("result", "Violation Saved Successfully");
