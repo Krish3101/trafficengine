@@ -3,16 +3,23 @@ package org.krish.traffic;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "violations1")
+@Table(name = "traffic_violations")
 public class TrafficViolation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String vehicleId;
+
+    @Column(nullable = false)
     private double speed;
+
+    @Column(nullable = false)
     private String zone;
+
+    @Column(nullable = false)
     private int fine;
 
     // Getters and Setters

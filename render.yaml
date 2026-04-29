@@ -1,13 +1,6 @@
-# Railway deployment config
-# See: https://docs.railway.app
-#
-# Steps to deploy on Railway (MySQL + Docker):
-# 1. Push this repo to GitHub
-# 2. Go to https://railway.app → New Project → Deploy from GitHub
-# 3. Railway auto-detects the Dockerfile and builds it
-# 4. Add a MySQL plugin: New → Database → MySQL
-# 5. In your app's Variables tab, set:
-#      SPRING_DATASOURCE_URL = jdbc:mysql://<MYSQLHOST>:<MYSQLPORT>/<MYSQLDATABASE>?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-#      DB_USER = <MYSQLUSER>
-#      DB_PASSWORD = <MYSQLPASSWORD>
-# 6. Railway will provide all MYSQL* env vars automatically from the plugin
+services:
+  - type: web
+    name: traffic
+    env: docker
+    plan: free
+    autoDeploy: true
