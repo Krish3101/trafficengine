@@ -9,6 +9,5 @@ mvnw.cmd
 .git/
 .idea/
 .vscode/
-HELP.md
 Dockerfile
 render.yaml
