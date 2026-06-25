@@ -1,9 +1,12 @@
 package org.krish.traffic;
 
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class TrafficController {
@@ -19,20 +22,28 @@ public class TrafficController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("result", "");
+        model.addAttribute("form", new ViolationForm());
         populateModel(model);
         return "index";
     }
 
     @PostMapping("/process")
     public String process(
-            @RequestParam String vehicleId,
-            @RequestParam double speed,
-            @RequestParam String zone,
-            @RequestParam(defaultValue = "false") boolean emergency,
+            @Valid @ModelAttribute("form") ViolationForm form,
+            BindingResult bindingResult,
             Model model) {
 
+        if (bindingResult.hasErrors()) {
+            String errorMsg = bindingResult.getAllErrors().stream()
+                    .map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining("; "));
+            model.addAttribute("result", "Validation failed: " + errorMsg);
+            populateModel(model);
+            return "index";
+        }
+
         SmartTrafficSystem.VehicleEvent event = new SmartTrafficSystem.VehicleEvent(
-                vehicleId, speed, zone, emergency, System.currentTimeMillis()
+                form.getVehicleId(), form.getSpeed(), form.getZone(), form.isEmergency(), System.currentTimeMillis()
         );
 
         List<SmartTrafficSystem.ViolationRecord> result = system.process(List.of(event));

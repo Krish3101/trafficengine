@@ -1,6 +1,7 @@
 package org.krish.traffic;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "traffic_violations")
@@ -22,6 +23,13 @@ public class TrafficViolation {
     @Column(nullable = false)
     private int fine;
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -37,4 +45,7 @@ public class TrafficViolation {
 
     public int getFine() { return fine; }
     public void setFine(int fine) { this.fine = fine; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

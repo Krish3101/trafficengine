@@ -2,44 +2,43 @@ package org.krish.traffic;
 
 import org.springframework.stereotype.Service;
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.*;
 
 @Service
 public class SmartTrafficSystem {
 
     private final TrafficViolationRepository repository;
+    private final TrafficRulesProperties properties;
 
-    public SmartTrafficSystem(TrafficViolationRepository repository) {
+    public SmartTrafficSystem(TrafficViolationRepository repository, TrafficRulesProperties properties) {
         this.repository = repository;
-    }
-
-    public static class TrafficRules {
-
-        public static Predicate<VehicleEvent> violationFilter = event -> event.speed > 80 && !event.isEmergencyVehicle;
-
-        public static Function<Double, Integer> fineCalculator = speed -> {
-            if (speed > 120)
-                return 5000;
-            else if (speed > 100)
-                return 2000;
-            else
-                return 1000;
-        };
+        this.properties = properties;
     }
 
     public List<ViolationRecord> process(List<VehicleEvent> events) {
         return events.stream()
                 .filter(Objects::nonNull)
-                .filter(TrafficRules.violationFilter)
+                .filter(event -> event.speed > properties.getSpeedThreshold() && !event.isEmergencyVehicle)
                 .map(event -> {
                     String vehicleId = Optional.ofNullable(event.vehicleId).orElse("UNKNOWN");
                     String zone = Optional.ofNullable(event.zone).orElse("UNKNOWN_ZONE");
-                    int fine = TrafficRules.fineCalculator.apply(event.speed);
+                    int fine = calculateFine(event.speed);
 
                     return new ViolationRecord(vehicleId, event.speed, zone, fine);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private int calculateFine(double speed) {
+        if (properties.getFineTiers() == null || properties.getFineTiers().isEmpty()) {
+            return 1000;
+        }
+        return properties.getFineTiers().stream()
+                .sorted((t1, t2) -> Double.compare(t2.getThreshold(), t1.getThreshold()))
+                .filter(tier -> speed > tier.getThreshold())
+                .findFirst()
+                .map(TrafficRulesProperties.FineTier::getAmount)
+                .orElse(1000);
     }
 
     public long getTotalViolations() {
@@ -90,7 +89,4 @@ public class SmartTrafficSystem {
         }
     }
 
-    public final Consumer<ViolationRecord> logger = System.out::println;
-    public final Supplier<VehicleEvent> defaultEventSupplier = () -> new VehicleEvent("DEFAULT", 0, "UNKNOWN", false,
-            System.currentTimeMillis());
 }

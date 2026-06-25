@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: traffic
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:trafficdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+  h2:
+    console:
+      enabled: false
+
+server:
+  port: ${PORT:8080}
+
+traffic:
+  rules:
+    speed-threshold: 80.0
+    fine-tiers:
+      - threshold: 120.0
+        amount: 5000
+      - threshold: 100.0
+        amount: 2000
+      - threshold: 80.0
+        amount: 1000

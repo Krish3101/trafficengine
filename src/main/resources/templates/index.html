@@ -97,17 +97,19 @@
                                 <th>Speed</th>
                                 <th>Zone</th>
                                 <th>Fine Amount</th>
+                                <th>Time</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:if="${list.isEmpty()}">
-                                <td colspan="4" style="text-align: center; color: var(--text-muted);">No violations logged yet.</td>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted);">No violations logged yet.</td>
                             </tr>
                             <tr th:each="v : ${list}">
                                 <td><strong th:text="${v.vehicleId}"></strong></td>
                                 <td th:text="${v.speed} + ' km/h'"></td>
                                 <td th:text="${v.zone}"></td>
                                 <td><span class="badge-fine" th:text="${'₹' + v.fine}"></span></td>
+                                <td th:text="${#temporals.format(v.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
                             </tr>
                         </tbody>
                     </table>
