@@ -7,6 +7,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+    open-in-view: false
 
 traffic:
   rules:

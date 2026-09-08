@@ -1,14 +1,42 @@
-# Maven
-target/
+# Compiled class file
 *.class
+
+# Log file
+*.log
+
+# Package Files #
 *.jar
 *.war
 *.nar
 *.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Node / Frontend (if any tools are added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # IDEs and Editors
 .idea/
 *.iml
+*.iws
+*.ipr
+.vscode/
 .settings/
 .project
 .classpath
@@ -19,10 +47,20 @@ target/
 *.njsproj
 *.sln
 *.sw?
+*.sublime-workspace
+*.sublime-project
 
-# OS
+# OS Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Environment variables
+# Environment Variables & Secrets
 .env
+.env.local
+.env.*.local
+!.env.example
