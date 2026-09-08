@@ -1,5 +1,6 @@
 package org.krish.traffic.violation;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -23,6 +24,7 @@ public class TrafficViolation {
   @Column(nullable = false)
   private int fine;
 
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 

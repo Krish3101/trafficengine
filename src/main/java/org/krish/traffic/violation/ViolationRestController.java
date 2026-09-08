@@ -1,6 +1,7 @@
 package org.krish.traffic.violation;
 
 import jakarta.validation.Valid;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,24 +35,23 @@ public class ViolationRestController {
       List<String> errors =
           bindingResult.getAllErrors().stream()
               .map(error -> error.getDefaultMessage())
+              .sorted()
               .collect(Collectors.toList());
       return ResponseEntity.badRequest().body(Map.of("errors", errors));
     }
 
     Optional<TrafficViolation> saved = system.evaluateAndRecord(form);
     if (saved.isPresent()) {
-      return ResponseEntity.status(HttpStatus.CREATED)
-          .body(
-              Map.of(
-                  "violationDetected",
-                  true,
-                  "message",
-                  "Violation saved successfully",
-                  "violation",
-                  saved.get()));
+      Map<String, Object> response = new LinkedHashMap<>();
+      response.put("violationDetected", true);
+      response.put("message", "Violation saved successfully");
+      response.put("violation", saved.get());
+      return ResponseEntity.status(HttpStatus.CREATED).body(response);
     } else {
-      return ResponseEntity.ok(
-          Map.of("violationDetected", false, "message", "No violation detected for this event"));
+      Map<String, Object> response = new LinkedHashMap<>();
+      response.put("violationDetected", false);
+      response.put("message", "No violation detected for this event");
+      return ResponseEntity.ok(response);
     }
   }
 }

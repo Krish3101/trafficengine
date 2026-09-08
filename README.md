@@ -27,12 +27,12 @@ The application follows a clean layered Spring MVC architecture:
   - `ViolationRestController`: Serves programmatic JSON endpoints under `/api/v1/violations`.
   - Both controllers validate incoming payloads through Jakarta Bean Validation (`@Valid`) and delegate business logic to the service layer.
 - **Service & Domain Layer**:
-  - `ViolationEvaluator`: Core rule engine that evaluates `VehicleEvent` instances against configured thresholds. It exempts authorized emergency vehicles, calculates fines according to speed tiers, and persists infractions.
+  - `ViolationEvaluator`: Core rule engine that evaluates `VehicleEvent` instances against configured thresholds. It exempts emergency vehicles (flagged via `emergency` field), calculates fines according to speed tiers, and persists infractions.
   - `TrafficRulesProperties`: Strongly-typed configuration class bound via `@ConfigurationProperties(prefix = "traffic.rules")`, externalizing rule parameters to `application.yml`.
 - **Data Access Layer**:
   - `TrafficViolationRepository`: Spring Data JPA repository extending `JpaRepository` with custom JPQL aggregations for total fine calculation (`sumAllFines`) and zone-based infraction counts (`countViolationsByZone`).
   - `TrafficViolation`: JPA entity mapping violation records with database identity generation and creation timestamps via `@PrePersist`.
-- **Persistence Layer**: Default in-memory H2 database (with PostgreSQL compatibility mode) for local execution and automated testing; PostgreSQL driver included at runtime for cloud deployments.
+- **Persistence Layer**: Default in-memory H2 database (with PostgreSQL compatibility mode for local execution; isolated in-memory H2 for automated testing); PostgreSQL driver included at runtime for cloud deployments.
 
 ---
 
@@ -46,7 +46,7 @@ The application follows a clean layered Spring MVC architecture:
 | **Default Database** | H2 Database (In-Memory) | Zero-setup local development and isolated, fast test execution without external database installation. |
 | **Production Database** | PostgreSQL Driver (`runtime`) | Production-grade transactional database support for cloud deployments (Render). |
 | **Data Validation** | Jakarta Bean Validation | Declarative constraint annotations directly on data transfer objects (`ViolationForm`) to ensure boundary validation before reaching business logic. |
-| **Testing** | JUnit 5, Spring Boot Test, Mockito | Comprehensive test coverage spanning slice unit tests (`ViolationEvaluatorTest`) and full integration tests (`TrafficApplicationTests`) via MockMvc. |
+| **Testing** | JUnit 5, Spring Boot Test, Mockito | Comprehensive test coverage spanning isolated unit tests (`ViolationEvaluatorTest`) and full integration tests (`TrafficApplicationTests`) via MockMvc. |
 | **Code Formatting** | Spotless (Google Java Format) | Enforces standard Java formatting rules and automatically removes unused imports during build verification. |
 | **Containerization** | Docker & Docker Compose | Multi-stage build containerization producing minimal JRE runtime images for consistent local and production deployment. |
 
@@ -94,7 +94,7 @@ traffic:
 
 ### Step 1: Clone the Repository
 ```bash
-git clone <repo-url>
+git clone https://github.com/Krish3101/traffic-app.git
 cd traffic-app
 ```
 
@@ -227,9 +227,9 @@ curl -X POST http://localhost:8080/api/v1/violations \
 ```json
 {
   "errors": [
-    "Zone must contain only alphanumeric characters, spaces, hyphens, or underscores",
     "Speed cannot exceed 300 km/h",
-    "Vehicle ID must be between 2 and 20 characters"
+    "Vehicle ID must be between 2 and 20 characters",
+    "Zone must contain only alphanumeric characters, spaces, hyphens, or underscores"
   ]
 }
 ```

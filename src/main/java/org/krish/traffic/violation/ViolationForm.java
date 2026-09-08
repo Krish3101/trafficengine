@@ -17,7 +17,7 @@ public class ViolationForm {
   private String vehicleId;
 
   @NotNull(message = "Speed is required")
-  @DecimalMin(value = "0.0", message = "Speed must be positive")
+  @DecimalMin(value = "0.0", message = "Speed cannot be negative")
   @DecimalMax(value = "300.0", message = "Speed cannot exceed 300 km/h")
   private Double speed;
 

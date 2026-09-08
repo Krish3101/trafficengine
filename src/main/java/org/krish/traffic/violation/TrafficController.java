@@ -35,6 +35,7 @@ public class TrafficController {
       String errorMsg =
           bindingResult.getAllErrors().stream()
               .map(error -> error.getDefaultMessage())
+              .sorted()
               .collect(Collectors.joining("; "));
       model.addAttribute("result", "Validation failed: " + errorMsg);
       populateModel(model);
