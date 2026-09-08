@@ -64,10 +64,9 @@ class TrafficApplicationTests {
                 .content(
                     "{\"vehicleId\": \"KA03MM1234\", \"speed\": 110.0, \"zone\": \"Zone-B\", \"emergency\": false}"))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.violationDetected").value(true))
-        .andExpect(jsonPath("$.violation.vehicleId").value("KA03MM1234"))
-        .andExpect(jsonPath("$.violation.speed").value(110.0))
-        .andExpect(jsonPath("$.violation.fine").value(2000));
+        .andExpect(jsonPath("$.vehicleId").value("KA03MM1234"))
+        .andExpect(jsonPath("$.speed").value(110.0))
+        .andExpect(jsonPath("$.fine").value(2000));
   }
 
   @Test

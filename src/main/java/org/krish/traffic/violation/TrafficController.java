@@ -38,6 +38,7 @@ public class TrafficController {
               .sorted()
               .collect(Collectors.joining("; "));
       model.addAttribute("result", "Validation failed: " + errorMsg);
+      model.addAttribute("form", new ViolationForm());
       populateModel(model);
       return "index";
     }
@@ -45,6 +46,7 @@ public class TrafficController {
     Optional<TrafficViolation> saved = system.evaluateAndRecord(form);
     model.addAttribute(
         "result", saved.isPresent() ? "Violation Saved Successfully" : "No violation detected");
+    model.addAttribute("form", new ViolationForm());
 
     populateModel(model);
     return "index";

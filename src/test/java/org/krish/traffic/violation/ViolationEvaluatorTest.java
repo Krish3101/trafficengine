@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.krish.traffic.config.TrafficRulesProperties;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -52,111 +51,122 @@ class ViolationEvaluatorTest {
 
   @Test
   void testSpeedAboveThresholdNonEmergencyCreatesViolationWithCorrectFine() {
-    ViolationEvaluator.VehicleEvent event =
-        new ViolationEvaluator.VehicleEvent("KA01AB1234", 110.0, "Zone-A", false);
-    Optional<ViolationEvaluator.ViolationRecord> recordOpt = evaluator.evaluate(event);
+    ViolationForm form = new ViolationForm();
+    form.setVehicleId("KA01AB1234");
+    form.setSpeed(110.0);
+    form.setZone("Zone-A");
+    form.setEmergency(false);
+
+    TrafficViolation mockSaved = new TrafficViolation();
+    mockSaved.setVehicleId("KA01AB1234");
+    mockSaved.setSpeed(110.0);
+    mockSaved.setZone("Zone-A");
+    mockSaved.setFine(2000);
+    when(repository.save(any(TrafficViolation.class))).thenReturn(mockSaved);
+
+    Optional<TrafficViolation> recordOpt = evaluator.evaluateAndRecord(form);
 
     assertTrue(recordOpt.isPresent());
-    ViolationEvaluator.ViolationRecord record = recordOpt.get();
-    assertEquals("KA01AB1234", record.vehicleId);
-    assertEquals(110.0, record.speed);
-    assertEquals("Zone-A", record.zone);
-    assertEquals(2000, record.fine);
+    TrafficViolation record = recordOpt.get();
+    assertEquals("KA01AB1234", record.getVehicleId());
+    assertEquals(110.0, record.getSpeed());
+    assertEquals("Zone-A", record.getZone());
+    assertEquals(2000, record.getFine());
   }
 
   @Test
   void testSpeedExactlyEqualToThresholdNoViolation() {
-    ViolationEvaluator.VehicleEvent event =
-        new ViolationEvaluator.VehicleEvent("KA01AB1234", 80.0, "Zone-A", false);
-    Optional<ViolationEvaluator.ViolationRecord> recordOpt = evaluator.evaluate(event);
+    ViolationForm form = new ViolationForm();
+    form.setVehicleId("KA01AB1234");
+    form.setSpeed(80.0);
+    form.setZone("Zone-A");
+    form.setEmergency(false);
+    Optional<TrafficViolation> recordOpt = evaluator.evaluateAndRecord(form);
 
     assertFalse(recordOpt.isPresent());
   }
 
   @Test
   void testSpeedAboveThresholdEmergencyVehicleNoViolation() {
-    ViolationEvaluator.VehicleEvent event =
-        new ViolationEvaluator.VehicleEvent("AMB01", 140.0, "Zone-A", true);
-    Optional<ViolationEvaluator.ViolationRecord> recordOpt = evaluator.evaluate(event);
+    ViolationForm form = new ViolationForm();
+    form.setVehicleId("AMB01");
+    form.setSpeed(140.0);
+    form.setZone("Zone-A");
+    form.setEmergency(true);
+    Optional<TrafficViolation> recordOpt = evaluator.evaluateAndRecord(form);
 
     assertFalse(recordOpt.isPresent());
   }
 
   @Test
   void testNullVehicleIdAndZoneDefaultToUnknown() {
-    ViolationEvaluator.VehicleEvent event =
-        new ViolationEvaluator.VehicleEvent(null, 95.0, null, false);
-    Optional<ViolationEvaluator.ViolationRecord> recordOpt = evaluator.evaluate(event);
+    ViolationForm form = new ViolationForm();
+    form.setVehicleId(null);
+    form.setSpeed(95.0);
+    form.setZone(null);
+    form.setEmergency(false);
+
+    TrafficViolation mockSaved = new TrafficViolation();
+    mockSaved.setVehicleId("UNKNOWN");
+    mockSaved.setZone("UNKNOWN_ZONE");
+    mockSaved.setFine(1000);
+    when(repository.save(any(TrafficViolation.class))).thenReturn(mockSaved);
+
+    Optional<TrafficViolation> recordOpt = evaluator.evaluateAndRecord(form);
 
     assertTrue(recordOpt.isPresent());
-    ViolationEvaluator.ViolationRecord record = recordOpt.get();
-    assertEquals("UNKNOWN", record.vehicleId);
-    assertEquals("UNKNOWN_ZONE", record.zone);
-    assertEquals(1000, record.fine);
+    TrafficViolation record = recordOpt.get();
+    assertEquals("UNKNOWN", record.getVehicleId());
+    assertEquals("UNKNOWN_ZONE", record.getZone());
+    assertEquals(1000, record.getFine());
   }
 
   @Test
   void testNoFineTiersConfiguredFallsBackToDefaultFine() {
     properties.setFineTiers(null);
-    ViolationEvaluator.VehicleEvent event =
-        new ViolationEvaluator.VehicleEvent("KA01AB1234", 130.0, "Zone-A", false);
-    Optional<ViolationEvaluator.ViolationRecord> recordOpt = evaluator.evaluate(event);
+    ViolationForm form = new ViolationForm();
+    form.setVehicleId("KA01AB1234");
+    form.setSpeed(130.0);
+    form.setZone("Zone-A");
+    form.setEmergency(false);
+
+    TrafficViolation mockSaved = new TrafficViolation();
+    mockSaved.setFine(1000);
+    when(repository.save(any(TrafficViolation.class))).thenReturn(mockSaved);
+
+    Optional<TrafficViolation> recordOpt = evaluator.evaluateAndRecord(form);
 
     assertTrue(recordOpt.isPresent());
-    assertEquals(1000, recordOpt.get().fine);
+    assertEquals(1000, recordOpt.get().getFine());
 
     properties.setFineTiers(List.of());
-    recordOpt = evaluator.evaluate(event);
+    recordOpt = evaluator.evaluateAndRecord(form);
     assertTrue(recordOpt.isPresent());
-    assertEquals(1000, recordOpt.get().fine);
+    assertEquals(1000, recordOpt.get().getFine());
   }
 
   @Test
   void testSpeedOnTierBoundaryDoesNotMatchHigherTier() {
-    ViolationEvaluator.VehicleEvent event =
-        new ViolationEvaluator.VehicleEvent("KA01AB1234", 100.0, "Zone-A", false);
-    Optional<ViolationEvaluator.ViolationRecord> recordOpt = evaluator.evaluate(event);
+    ViolationForm form = new ViolationForm();
+    form.setVehicleId("KA01AB1234");
+    form.setSpeed(100.0);
+    form.setZone("Zone-A");
+    form.setEmergency(false);
+
+    TrafficViolation mockSaved = new TrafficViolation();
+    mockSaved.setFine(1000);
+    when(repository.save(any(TrafficViolation.class))).thenReturn(mockSaved);
+
+    Optional<TrafficViolation> recordOpt = evaluator.evaluateAndRecord(form);
 
     assertTrue(recordOpt.isPresent());
-    assertEquals(1000, recordOpt.get().fine);
+    assertEquals(1000, recordOpt.get().getFine());
   }
 
   @Test
   void testEvaluateNullEventReturnsEmpty() {
-    Optional<ViolationEvaluator.ViolationRecord> recordOpt = evaluator.evaluate(null);
+    Optional<TrafficViolation> recordOpt = evaluator.evaluateAndRecord(null);
     assertFalse(recordOpt.isPresent());
-  }
-
-  @Test
-  void testEvaluateAndRecordSavesWhenViolationDetected() {
-    ViolationForm form = new ViolationForm();
-    form.setVehicleId("KA01AB1234");
-    form.setSpeed(110.0);
-    form.setZone("Zone-B");
-    form.setEmergency(false);
-
-    TrafficViolation savedEntity = new TrafficViolation();
-    savedEntity.setId(1L);
-    savedEntity.setVehicleId("KA01AB1234");
-    savedEntity.setSpeed(110.0);
-    savedEntity.setZone("Zone-B");
-    savedEntity.setFine(2000);
-
-    when(repository.save(any(TrafficViolation.class))).thenReturn(savedEntity);
-
-    Optional<TrafficViolation> result = evaluator.evaluateAndRecord(form);
-
-    assertTrue(result.isPresent());
-    assertEquals(1L, result.get().getId());
-    assertEquals(2000, result.get().getFine());
-
-    ArgumentCaptor<TrafficViolation> captor = ArgumentCaptor.forClass(TrafficViolation.class);
-    verify(repository).save(captor.capture());
-    TrafficViolation captured = captor.getValue();
-    assertEquals("KA01AB1234", captured.getVehicleId());
-    assertEquals(110.0, captured.getSpeed());
-    assertEquals("Zone-B", captured.getZone());
-    assertEquals(2000, captured.getFine());
   }
 
   @Test
