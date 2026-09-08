@@ -10,6 +10,14 @@ Traffic Violation System is a Spring Boot 3 web application and REST API that de
 
 ---
 
+## 🌐 Live Demo
+
+The application is deployed live on Render:
+- **Web Dashboard**: [https://traffic-app-oxw2.onrender.com](https://traffic-app-oxw2.onrender.com)
+- **REST API Endpoint**: [https://traffic-app-oxw2.onrender.com/api/v1/violations](https://traffic-app-oxw2.onrender.com/api/v1/violations)
+
+---
+
 ## 🏗️ Architecture Overview
 
 The application follows a clean layered Spring MVC architecture:
