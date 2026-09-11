@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:trafficdb;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:traffic_test_db;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -16,6 +16,8 @@ traffic:
     zone-speed-limits:
       SCHOOL-ZONE: 30.0
       HIGHWAY-1: 100.0
+      ZONE-A: 80.0
+      ZONE-B: 80.0
     default-fine: 1000
     fine-tiers:
       - over-by-kph: 40.0

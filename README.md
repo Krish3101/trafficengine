@@ -1,119 +1,100 @@
-# Traffic Violation System
+# Traffic Engine
 
-![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-6DB33F?logo=springboot&logoColor=white)
-![Maven](https://img.shields.io/badge/Build-Maven-C71A36?logo=apachemaven&logoColor=white)
+Takes a vehicle speed reading, decides whether it's a violation, and works out the fine.
+Spring Boot 3 on Java 21, with a small dashboard for submitting readings and seeing what
+came of them.
 
-A lightweight, deterministic rule engine for adjudicating traffic speeding violations. Built with **Java 21** and **Spring Boot 3**, this system accepts vehicle events and applies configurable business rules to determine if a violation occurred and what penalty applies.
+Three outcomes:
 
-## 🎯 Core Features
+- `WITHIN_LIMIT` — at or under the zone's limit, nothing recorded
+- `EXEMPT` — over the limit but flagged as an emergency vehicle, nothing recorded
+- `VIOLATION` — over the limit, citation recorded with a fine based on how far over
 
-- **Strict Rule Engine**: Evaluates speeds against configurable thresholds.
-- **Emergency Exemption**: Vehicles flagged as emergency units are strictly exempted prior to any penalty evaluation.
-- **Dual Entry Points**: 
-  - **REST API**: For programmatic machine-to-machine integrations.
-  - **Web Dashboard**: Server-rendered Thymeleaf dashboard for manual logging and analytics.
-- **Zero-State Configuration**: Thresholds and fine tiers are configured via `application.yml` rather than a dynamic admin dashboard. This keeps the enforcement policy version-controlled, auditable, and immutable at runtime.
-- **Graceful Degradation**: Missing properties trigger fallback behaviors while invalid payloads are deterministically rejected.
+## The rules are configuration, not code
 
-## 🏗️ Tech Stack
+Penalty policy changes more often than the software that applies it. So everything that
+decides an outcome lives in `src/main/resources/application.yml`, and changing a limit or
+a fine doesn't mean touching Java:
 
-- **Framework**: Java 21, Spring Boot 3 (Web, Data JPA, Validation)
-- **UI**: Thymeleaf + Semantic HTML/CSS
-- **Database**: H2 (In-Memory default for local/tests) / PostgreSQL (Production)
-- **Testing**: JUnit 5, MockMvc
-
-## 🚀 How to Run Locally
-
-### Prerequisites
-- **Java 21** or later
-
-### Build and Run
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/Krish3101/traffic-app.git
-   cd traffic-app
-   ```
-2. **Run Tests & Format Checks**
-   ```bash
-   ./mvnw clean test
-   ./mvnw spotless:check
-   ```
-3. **Start the Application**
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-   The application will start on port `8080` with an in-memory database. No `.env` is required.
-
-### Access
-- **Dashboard**: [http://localhost:8080](http://localhost:8080)
-- **API Endpoint**: `http://localhost:8080/api/v1/violations`
-
----
-
-## 📡 REST API Reference
-
-Base path: `/api/v1/violations`
-
-### 1. Submit Vehicle Event (Violation Detected)
-```bash
-curl -X POST http://localhost:8080/api/v1/violations \
-  -H "Content-Type: application/json" \
-  -d '{
-    "vehicleId": "KA03MM1234",
-    "speed": 110.0,
-    "zone": "Zone-B",
-    "emergency": false
-  }'
-```
-**Response (201 Created)**:
-```json
-{
-  "id": 1,
-  "vehicleId": "KA03MM1234",
-  "speed": 110.0,
-  "zone": "Zone-B",
-  "fine": 2000,
-  "createdAt": "2026-09-08T14:30:00"
-}
+```yaml
+traffic:
+  rules:
+    currency: INR
+    default-speed-limit-kph: 80.0
+    zone-speed-limits:
+      SCHOOL-ZONE: 30.0
+      HIGHWAY-1: 100.0
+    default-fine: 1000
+    fine-tiers:
+      - over-by-kph: 40.0
+        amount: 5000
+      - over-by-kph: 20.0
+        amount: 2000
+      - over-by-kph: 0.0
+        amount: 1000
 ```
 
-### 2. Submit Vehicle Event (No Violation / Exempted)
-```bash
-curl -X POST http://localhost:8080/api/v1/violations \
-  -H "Content-Type: application/json" \
-  -d '{
-    "vehicleId": "AMB-01",
-    "speed": 130.0,
-    "zone": "Zone-A",
-    "emergency": true
-  }'
-```
-**Response (200 OK)**:
+Two decisions in there are worth knowing about.
+
+Tiers are sorted by threshold, highest first, and the excess (`speed - limit`) takes the
+first one it is strictly above — so the order you write them in the file doesn't matter.
+The boundary is exclusive: an excess of exactly 20.0 does not reach the 20.0 tier, it falls
+to the one below. If it is above none of them, `default-fine` applies.
+
+Zone names match case-insensitively, and a zone that isn't listed falls back to
+`default-speed-limit-kph` rather than being rejected — an unknown camera location
+shouldn't mean no enforcement.
+
+## Where the deciding happens
+
 ```text
-No violation detected
+src/main/java/org/krish/traffic/
+  rules/       SpeedRuleEngine and its records — no Spring, no database
+  violation/   JPA entity, repository, service ledger
+  web/         controllers, DTOs, exception handling
+src/main/resources/
+  application.yml    the rules above
+  static/            dashboard
 ```
 
-### 3. Input Validation Error
+`rules/` is the whole point of the layout. It has no dependency on Spring or on the
+database, so the tier boundaries and the exempt path are tested directly against the
+engine with no application context to start.
+
+## Sending a reading
+
 ```bash
-curl -X POST http://localhost:8080/api/v1/violations \
+curl -X POST http://localhost:8080/api/readings \
   -H "Content-Type: application/json" \
-  -d '{"vehicleId": "A", "speed": 350.0, "zone": "Zone-?"}'
-```
-**Response (400 Bad Request)**:
-```json
-{
-  "errors": [
-    "Speed cannot exceed 300 km/h",
-    "Vehicle ID must be between 2 and 20 characters",
-    "Zone must contain only alphanumeric characters, spaces, hyphens, or underscores"
-  ]
-}
+  -d '{"vehicleId":"KA03MM1234","zone":"SCHOOL-ZONE","speedKph":55.0,"emergency":false}'
 ```
 
-## 💡 Design Decisions (YAGNI Principle)
+Returns `201` when a citation was recorded, `200` when the reading was within limit or
+exempt, and `400` with the offending fields when the input is invalid.
 
-This project is intentionally designed to avoid over-engineering:
-- **No Complex DTOs**: The application operates directly on simple web forms and outputs entities where applicable, avoiding bloated mapping layers.
-- **Synchronous Processing**: HTTP endpoints are fully synchronous; no message brokers (Kafka/RabbitMQ) were added since the current requirements do not warrant asynchronous event buffering.
-- **No RBAC**: Authentication is omitted by design to remove setup friction.
+`GET /api/violations` lists recent citations, optionally filtered by `zone` and `limit`
+(default 50, max 200). `GET /api/analytics/summary` returns totals and a per-zone breakdown.
+
+## Running it
+
+Needs Java 21 or newer. The Maven wrapper handles the rest.
+
+```bash
+./scripts/start.sh     # http://localhost:8080
+./mvnw test
+./scripts/reset.sh     # stop, clean target/, clear the ledger
+```
+
+The API tests run through MockMvc and check status codes, validation errors and the
+analytics totals.
+
+## What it doesn't do
+
+The ledger is an in-memory database, so citations are gone when the process stops — this
+demonstrates the rules, it doesn't keep records. There's no authentication, so anyone who
+can reach the port can submit a reading. Fine tiers are flat amounts rather than anything
+that varies by vehicle class or repeat offence.
+
+## License
+
+[MIT](LICENSE)
