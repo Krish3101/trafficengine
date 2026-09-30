@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         showGenericError(data.detail || 'An unexpected error occurred');
       }
-    } catch (err) {
+    } catch {
       showGenericError('Failed to communicate with the server.');
     }
   });

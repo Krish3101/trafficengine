@@ -31,87 +31,54 @@ public class ApiExceptionHandler {
     for (FieldError error : ex.getBindingResult().getFieldErrors()) {
       fieldErrorMap.putIfAbsent(error.getField(), error.getDefaultMessage());
     }
-
     List<FieldErrorDetail> errors =
         fieldErrorMap.entrySet().stream()
             .map(entry -> new FieldErrorDetail(entry.getKey(), entry.getValue()))
             .toList();
-
-    ProblemDetail problem =
-        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Request validation failed");
-    problem.setTitle("Bad Request");
-    problem.setProperty("errors", errors);
-
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(problem);
+    return respond(HttpStatus.BAD_REQUEST, "Request validation failed", errors);
   }
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<ProblemDetail> handleMalformedJson(HttpMessageNotReadableException ex) {
-    ProblemDetail problem =
-        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Malformed JSON request");
-    problem.setTitle("Bad Request");
-
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(problem);
+    return respond(HttpStatus.BAD_REQUEST, "Malformed JSON request", null);
   }
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
   public ResponseEntity<ProblemDetail> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-    ProblemDetail problem =
-        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Request validation failed");
-    problem.setTitle("Bad Request");
-    problem.setProperty(
-        "errors",
-        List.of(new FieldErrorDetail(ex.getName(), "must be a valid " + expectedTypeName(ex))));
-
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(problem);
-  }
-
-  private static String expectedTypeName(MethodArgumentTypeMismatchException ex) {
     Class<?> required = ex.getRequiredType();
-    return required == null ? "value" : required.getSimpleName().toLowerCase();
+    String expected = required == null ? "value" : required.getSimpleName().toLowerCase();
+    return respond(
+        HttpStatus.BAD_REQUEST,
+        "Request validation failed",
+        List.of(new FieldErrorDetail(ex.getName(), "must be a valid " + expected)));
   }
 
   // Without these two, an unknown path or a wrong method would land in the catch-all below
   // and come back as a 500.
   @ExceptionHandler(NoResourceFoundException.class)
   public ResponseEntity<ProblemDetail> handleNotFound(NoResourceFoundException ex) {
-    ProblemDetail problem =
-        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "No such page or endpoint");
-    problem.setTitle("Not Found");
-
-    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(problem);
+    return respond(HttpStatus.NOT_FOUND, "No such page or endpoint", null);
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
   public ResponseEntity<ProblemDetail> handleWrongMethod(HttpRequestMethodNotSupportedException ex) {
-    ProblemDetail problem =
-        ProblemDetail.forStatusAndDetail(
-            HttpStatus.METHOD_NOT_ALLOWED, ex.getMethod() + " is not supported here");
-    problem.setTitle("Method Not Allowed");
-
-    return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(problem);
+    return respond(
+        HttpStatus.METHOD_NOT_ALLOWED, ex.getMethod() + " is not supported here", null);
   }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ProblemDetail> handleGeneralException(Exception ex) {
     log.error("Unexpected error", ex);
-    ProblemDetail problem =
-        ProblemDetail.forStatusAndDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-    problem.setTitle("Internal Server Error");
+    return respond(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", null);
+  }
 
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(problem);
+  private static ResponseEntity<ProblemDetail> respond(
+      HttpStatus status, String detail, List<FieldErrorDetail> errors) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+    problem.setTitle(status.getReasonPhrase());
+    if (errors != null) {
+      problem.setProperty("errors", errors);
+    }
+    return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(problem);
   }
 }
