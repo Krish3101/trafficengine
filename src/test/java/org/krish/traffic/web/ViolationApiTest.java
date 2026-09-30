@@ -325,4 +325,12 @@ class ViolationApiTest {
         .perform(post("/api/readings").contentType(MediaType.APPLICATION_JSON).content("{}"))
         .andExpect(header().string("Content-Type", containsString("application/json")));
   }
+
+  @Test
+  @DisplayName("Unknown paths return 404 and a wrong method returns 405, not 500")
+  void unknownPathsAndMethods() throws Exception {
+    mockMvc.perform(get("/favicon.ico")).andExpect(status().isNotFound());
+    mockMvc.perform(get("/api/nope")).andExpect(status().isNotFound());
+    mockMvc.perform(get("/api/readings")).andExpect(status().isMethodNotAllowed());
+  }
 }
