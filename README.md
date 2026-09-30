@@ -6,6 +6,8 @@ Takes a vehicle speed reading, decides whether it's a violation, and works out t
 Spring Boot 3 on Java 21 with PostgreSQL, and a small dashboard for submitting readings and
 seeing what came of them.
 
+**Stack:** Java 21, Spring Boot 3.4, Spring Data JPA, PostgreSQL, JUnit 5 with MockMvc, Docker, Render.
+
 **Live demo:** <https://traffic-app-oxw2.onrender.com> (free hosting, so the first load can
 take up to two minutes while it wakes up).
 
