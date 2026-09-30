@@ -4,6 +4,9 @@ Takes a vehicle speed reading, decides whether it's a violation, and works out t
 Spring Boot 3 on Java 21 with PostgreSQL, and a small dashboard for submitting readings and
 seeing what came of them.
 
+**Live demo:** <https://traffic-app-oxw2.onrender.com> (free hosting, so the first load can
+take about a minute while it wakes up).
+
 Three outcomes:
 
 - `WITHIN_LIMIT` — at or under the zone's limit, nothing recorded
