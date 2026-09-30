@@ -7,13 +7,13 @@ Spring Boot 3 on Java 21 with PostgreSQL, and a small dashboard for submitting r
 seeing what came of them.
 
 **Live demo:** <https://traffic-app-oxw2.onrender.com> (free hosting, so the first load can
-take about a minute while it wakes up).
+take up to two minutes while it wakes up).
 
 Three outcomes:
 
-- `WITHIN_LIMIT` — at or under the zone's limit, nothing recorded
-- `EXEMPT` — over the limit but flagged as an emergency vehicle, nothing recorded
-- `VIOLATION` — over the limit, citation recorded with a fine based on how far over
+- `WITHIN_LIMIT`: at or under the zone's limit, nothing recorded
+- `EXEMPT`: over the limit but flagged as an emergency vehicle, nothing recorded
+- `VIOLATION`: over the limit, citation recorded with a fine based on how far over
 
 ![Dashboard with a reading just evaluated and the citations recorded so far](docs/dashboard.png)
 
@@ -44,12 +44,12 @@ traffic:
 Two decisions in there are worth knowing about.
 
 Tiers are sorted by threshold, highest first, and the excess (`speed - limit`) takes the
-first one it is strictly above — so the order you write them in the file doesn't matter.
+first one it is strictly above, so the order you write them in the file doesn't matter.
 The boundary is exclusive: an excess of exactly 20.0 does not reach the 20.0 tier, it falls
 to the one below. If it is above none of them, `default-fine` applies.
 
 Zone names match case-insensitively, and a zone that isn't listed falls back to
-`default-speed-limit-kph` rather than being rejected — an unknown camera location
+`default-speed-limit-kph` rather than being rejected. An unknown camera location
 shouldn't mean no enforcement.
 
 ## Where the deciding happens
@@ -57,7 +57,7 @@ shouldn't mean no enforcement.
 ```text
 src/main/java/org/krish/traffic/
   RulesConfig  hands the rule engine and its settings to Spring
-  rules/       SpeedRuleEngine and its records — no Spring, no database
+  rules/       SpeedRuleEngine and its records, no Spring, no database
   violation/   JPA entity, repository, service ledger
   web/         controllers, DTOs, exception handling
 src/main/resources/
