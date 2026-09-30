@@ -1,5 +1,7 @@
 # Traffic Engine
 
+[![tests](https://github.com/Krish3101/trafficengine/actions/workflows/tests.yml/badge.svg)](https://github.com/Krish3101/trafficengine/actions/workflows/tests.yml)
+
 Takes a vehicle speed reading, decides whether it's a violation, and works out the fine.
 Spring Boot 3 on Java 21 with PostgreSQL, and a small dashboard for submitting readings and
 seeing what came of them.
