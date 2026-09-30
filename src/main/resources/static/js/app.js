@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (data.outcome === 'VIOLATION' && data.violation) {
       html += `
-        <p><strong>Fine:</strong> ${data.currency} ${data.violation.fineAmount}</p>
+        <p><strong>Fine:</strong> ${data.currency} ${data.violation.fineAmount.toLocaleString()}</p>
         <p><strong>Citation ID:</strong> #${data.violation.id}</p>
       `;
     } else if (data.outcome === 'EXEMPT') {

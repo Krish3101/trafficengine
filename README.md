@@ -10,6 +10,8 @@ Three outcomes:
 - `EXEMPT` — over the limit but flagged as an emergency vehicle, nothing recorded
 - `VIOLATION` — over the limit, citation recorded with a fine based on how far over
 
+![Dashboard with a reading just evaluated and the citations recorded so far](docs/dashboard.png)
+
 ## The rules are configuration, not code
 
 Penalty policy changes more often than the software that applies it. So everything that
