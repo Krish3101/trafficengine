@@ -1,14 +1,12 @@
 package org.krish.traffic.rules;
 
-import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("traffic.rules")
+/** Bound from traffic.rules in application.yml (see RulesConfig). */
 public class TrafficRulesProperties {
 
   private String currency = "INR";
@@ -17,7 +15,6 @@ public class TrafficRulesProperties {
   private int defaultFine = 1000;
   private List<FineTier> fineTiers = new ArrayList<>();
 
-  @PostConstruct
   public void validate() {
     if (currency == null || currency.isBlank()) {
       throw new IllegalStateException("traffic.rules.currency cannot be blank");

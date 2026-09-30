@@ -51,6 +51,7 @@ shouldn't mean no enforcement.
 
 ```text
 src/main/java/org/krish/traffic/
+  RulesConfig  hands the rule engine and its settings to Spring
   rules/       SpeedRuleEngine and its records — no Spring, no database
   violation/   JPA entity, repository, service ledger
   web/         controllers, DTOs, exception handling
@@ -84,7 +85,7 @@ Needs Java 21 or newer and Docker. The Maven wrapper handles the rest.
 ```bash
 ./scripts/start.sh     # starts PostgreSQL in Docker, then the app on http://localhost:8080
 ./mvnw test
-./scripts/reset.sh     # stop, clean target/, and delete the database
+./scripts/reset.sh     # delete the database and target/ (stop the app first)
 ```
 
 PostgreSQL runs from `docker-compose.yml` on port 5433, so it won't clash with one you

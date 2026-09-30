@@ -3,9 +3,7 @@ package org.krish.traffic.rules;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
-import org.springframework.stereotype.Component;
 
-@Component
 public class SpeedRuleEngine {
 
   private final TrafficRulesProperties properties;
