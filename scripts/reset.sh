@@ -16,6 +16,9 @@ if [ -n "$PID" ]; then
   kill -9 "$PID" 2>/dev/null || true
 fi
 
+echo "Removing the database and its data..."
+docker compose down -v 2>/dev/null || true
+
 echo "Cleaning build artifacts and temporary files..."
 if [ -x "./mvnw" ]; then
   ./mvnw clean -q 2>/dev/null || rm -rf target/
@@ -28,5 +31,5 @@ rm -f .DS_Store
 rm -f *.log
 
 echo ""
-echo "Reset complete. All processes stopped, build artifacts cleared, and in-memory state reset."
+echo "Reset complete. All processes stopped, build artifacts cleared, and the ledger emptied."
 echo "You can now start the application afresh with ./scripts/start.sh"

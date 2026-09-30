@@ -1,13 +1,16 @@
+# The defaults match docker-compose.yml. On a server, set the DB_* variables instead.
 spring:
   datasource:
-    url: jdbc:h2:mem:trafficdb;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:traffic}
+    username: ${DB_USER:traffic}
+    password: ${DB_PASSWORD:traffic}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     open-in-view: false
+
+server:
+  port: ${PORT:8080}
 
 traffic:
   rules:

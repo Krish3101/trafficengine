@@ -1,8 +1,8 @@
 # Traffic Engine
 
 Takes a vehicle speed reading, decides whether it's a violation, and works out the fine.
-Spring Boot 3 on Java 21, with a small dashboard for submitting readings and seeing what
-came of them.
+Spring Boot 3 on Java 21 with PostgreSQL, and a small dashboard for submitting readings and
+seeing what came of them.
 
 Three outcomes:
 
@@ -79,23 +79,28 @@ exempt, and `400` with the offending fields when the input is invalid.
 
 ## Running it
 
-Needs Java 21 or newer. The Maven wrapper handles the rest.
+Needs Java 21 or newer and Docker. The Maven wrapper handles the rest.
 
 ```bash
-./scripts/start.sh     # http://localhost:8080
+./scripts/start.sh     # starts PostgreSQL in Docker, then the app on http://localhost:8080
 ./mvnw test
-./scripts/reset.sh     # stop, clean target/, clear the ledger
+./scripts/reset.sh     # stop, clean target/, and delete the database
 ```
 
+PostgreSQL runs from `docker-compose.yml` on port 5433, so it won't clash with one you
+already have on 5432. On a server, point the app at a database with `DB_HOST`, `DB_PORT`,
+`DB_NAME`, `DB_USER` and `DB_PASSWORD`; the `Dockerfile` builds the image for that.
+
 The API tests run through MockMvc and check status codes, validation errors and the
-analytics totals.
+analytics totals. They use an in-memory H2 database so they run without Docker, which means
+they don't catch anything PostgreSQL does differently.
 
 ## What it doesn't do
 
-The ledger is an in-memory database, so citations are gone when the process stops — this
-demonstrates the rules, it doesn't keep records. There's no authentication, so anyone who
-can reach the port can submit a reading. Fine tiers are flat amounts rather than anything
-that varies by vehicle class or repeat offence.
+Tables are created by Hibernate on startup (`ddl-auto: update`) rather than by versioned
+migrations, which is fine for one table and wouldn't be past a few. There's no
+authentication, so anyone who can reach the port can submit a reading. Fine tiers are flat
+amounts rather than anything that varies by vehicle class or repeat offence.
 
 ## License
 
