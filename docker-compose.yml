@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: traffic
       POSTGRES_DB: traffic
     ports:
-      - "5433:5432"  # 5433 so it doesn't clash with a Postgres already on 5432
+      - "${DB_PORT:-5433}:5432"  # 5433 so it doesn't clash with a Postgres already on 5432
     volumes:
       - traffic-data:/var/lib/postgresql/data
     healthcheck:

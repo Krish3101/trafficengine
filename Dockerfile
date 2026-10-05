@@ -1,4 +1,3 @@
-# Render has no Java runtime of its own, so it builds this image from the repo.
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY .mvn .mvn
@@ -7,9 +6,10 @@ RUN ./mvnw -q dependency:go-offline
 COPY src src
 RUN ./mvnw -q package -DskipTests
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-noble
 WORKDIR /app
+RUN useradd -r -u 10001 app
 COPY --from=build /app/target/*.jar app.jar
+USER 10001
 EXPOSE 8080
-# Free Render instances have 512 MB; keep the heap well inside that.
-CMD ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]
+CMD ["java", "-XX:MaxRAMPercentage=55", "-XX:+ExitOnOutOfMemoryError", "-jar", "app.jar"]
