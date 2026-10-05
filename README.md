@@ -1,7 +1,5 @@
 # Traffic Rule Engine
 
-[![tests](https://github.com/Krish3101/trafficengine/actions/workflows/tests.yml/badge.svg)](https://github.com/Krish3101/trafficengine/actions/workflows/tests.yml)
-
 Fines follow the rule set in force when the reading was observed; every citation records the version, limit and tier that produced it.
 
 Speeding rules change over time. A reading taken on 30 September must be judged by September's rules, even if it reaches the server in October. This service takes a speed reading, picks the versioned rule set by the reading's `observedAt`, works out the fine with exact decimals in a plain-Java engine, and stores a citation that explains itself.
