@@ -1,8 +1,47 @@
+# Maven & Build outputs
 target/
 !.mvn/wrapper/maven-wrapper.jar
-.DS_Store
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs & Crash Dumps
+*.log
+logs/
+hs_err_pid*
+replay_pid*
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE & Editors
 .idea/
 *.iml
-*.log
 .vscode/
-.env
+.project
+.classpath
+.settings/
+nbproject/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
