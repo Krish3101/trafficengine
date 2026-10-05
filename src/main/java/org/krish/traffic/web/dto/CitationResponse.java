@@ -1,16 +1,18 @@
 package org.krish.traffic.web.dto;
 
 import java.math.BigDecimal;
-import org.krish.traffic.rules.Outcome;
+import java.time.Instant;
 
-public record EvaluationResponse(
-    Outcome outcome,
+public record CitationResponse(
+    Long id,
     String vehicleId,
     String zone,
     BigDecimal speedKph,
     BigDecimal speedLimitKph,
     BigDecimal excessKph,
+    BigDecimal fineAmount,
     String currency,
-    boolean defaultLimit,
-    CitationResponse citation,
+    String ruleSetVersion,
+    Instant observedAt,
+    Instant recordedAt,
     String reason) {}

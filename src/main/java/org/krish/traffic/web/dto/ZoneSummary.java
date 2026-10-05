@@ -1,3 +1,5 @@
 package org.krish.traffic.web.dto;
 
-public record ZoneSummary(String zone, long violations, long fineAmount) {}
+import java.math.BigDecimal;
+
+public record ZoneSummary(String zone, long citations, BigDecimal fineAmount) {}

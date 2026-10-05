@@ -3,6 +3,7 @@ package org.krish.traffic.web;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.krish.traffic.rules.UnenforceableReadingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
@@ -53,8 +55,24 @@ public class ApiExceptionHandler {
         List.of(new FieldErrorDetail(ex.getName(), "must be a valid " + expected)));
   }
 
-  // Without these two, an unknown path or a wrong method would land in the catch-all below
-  // and come back as a 500.
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ProblemDetail> handleIllegalArgument(IllegalArgumentException ex) {
+    return respond(
+        HttpStatus.BAD_REQUEST,
+        "Request validation failed",
+        List.of(new FieldErrorDetail("request", ex.getMessage())));
+  }
+
+  @ExceptionHandler(UnenforceableReadingException.class)
+  public ResponseEntity<ProblemDetail> handleUnprocessable(UnenforceableReadingException ex) {
+    return respond(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null);
+  }
+
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<ProblemDetail> handleStatus(ResponseStatusException ex) {
+    return respond(HttpStatus.valueOf(ex.getStatusCode().value()), ex.getReason(), null);
+  }
+
   @ExceptionHandler(NoResourceFoundException.class)
   public ResponseEntity<ProblemDetail> handleNotFound(NoResourceFoundException ex) {
     return respond(HttpStatus.NOT_FOUND, "No such page or endpoint", null);
