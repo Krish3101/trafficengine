@@ -1,45 +1,57 @@
 package org.krish.traffic.rules;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.Comparator;
-import java.util.List;
 
+// Plain Java, no Spring: picks the rule set in force at observedAt and works out the fine.
 public class SpeedRuleEngine {
 
-  private final TrafficRulesProperties properties;
+  private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2);
 
-  public SpeedRuleEngine(TrafficRulesProperties properties) {
-    this.properties = properties;
+  private final RuleSetCatalog catalog;
+
+  public SpeedRuleEngine(RuleSetCatalog catalog) {
+    this.catalog = catalog;
   }
 
-  public Evaluation evaluate(String zone, double speedKph, boolean emergency) {
-    double limit = properties.getLimitForZone(zone);
+  public Evaluation evaluate(
+      String canonicalZone, BigDecimal speedKph, boolean emergency, Instant observedAt) {
+    RuleSet ruleSet = catalog.findRuleSet(observedAt);
 
-    if (speedKph <= limit) {
-      return new Evaluation(Outcome.WITHIN_LIMIT, limit, 0.0, 0);
+    boolean defaultLimit = !ruleSet.hasZone(canonicalZone);
+    BigDecimal limit = ruleSet.getLimit(canonicalZone).setScale(2, RoundingMode.HALF_UP);
+    BigDecimal speed = speedKph.setScale(2, RoundingMode.HALF_UP);
+
+    if (speed.compareTo(limit) <= 0) {
+      return new Evaluation(
+          Outcome.WITHIN_LIMIT, ruleSet.version(), canonicalZone, defaultLimit,
+          limit, speed, ZERO, null, ZERO, ruleSet.currency());
     }
 
-    double excess = BigDecimal.valueOf(speedKph).subtract(BigDecimal.valueOf(limit)).doubleValue();
-
+    BigDecimal excess = speed.subtract(limit);
     if (emergency) {
-      return new Evaluation(Outcome.EXEMPT, limit, excess, 0);
+      return new Evaluation(
+          Outcome.EXEMPT, ruleSet.version(), canonicalZone, defaultLimit,
+          limit, speed, excess, null, ZERO, ruleSet.currency());
     }
 
-    int fine = calculateFine(excess);
-    return new Evaluation(Outcome.VIOLATION, limit, excess, fine);
-  }
+    // tier edges are strict: exactly +20 over stays in the +0 tier
+    FineTier tier =
+        ruleSet.fineTiers().stream()
+            .filter(t -> excess.compareTo(t.overByKph()) > 0)
+            .max(Comparator.comparing(FineTier::overByKph))
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "No fine tier for +" + excess + " in rule set " + ruleSet.version()));
 
-  private int calculateFine(double excess) {
-    List<FineTier> tiers = properties.getFineTiers();
-    if (tiers == null || tiers.isEmpty()) {
-      return properties.getDefaultFine();
-    }
-
-    return tiers.stream()
-        .sorted(Comparator.comparingDouble(FineTier::overByKph).reversed())
-        .filter(tier -> excess > tier.overByKph())
-        .findFirst()
-        .map(FineTier::amount)
-        .orElse(properties.getDefaultFine());
+    return new Evaluation(
+        Outcome.VIOLATION, ruleSet.version(), canonicalZone, defaultLimit,
+        limit, speed, excess,
+        tier.overByKph().setScale(2, RoundingMode.HALF_UP),
+        tier.amount().setScale(2, RoundingMode.HALF_UP),
+        ruleSet.currency());
   }
 }
