@@ -11,7 +11,7 @@
   <header>
     <div class="container">
       <h1>Traffic Rule Engine</h1>
-      <p class="subtitle">Automated speed enforcement & citation ledger</p>
+      <p class="subtitle">Speed readings in, fines out. Each reading is judged by the rule version in force when it was observed.</p>
     </div>
   </header>
 
@@ -28,12 +28,12 @@
 
           <div class="form-group">
             <label for="zone">Zone</label>
-            <input type="text" id="zone" name="zone" maxlength="50" placeholder="e.g. ZONE-A or SCHOOL-ZONE" required>
+            <input type="text" id="zone" name="zone" maxlength="50" placeholder="e.g. SCHOOL-ZONE or HIGHWAY-1" required>
           </div>
 
           <div class="form-group">
             <label for="speedKph">Speed (km/h)</label>
-            <input type="number" id="speedKph" name="speedKph" step="0.1" min="0" max="300" placeholder="e.g. 95.5" required>
+            <input type="number" id="speedKph" name="speedKph" step="any" min="0" max="300" placeholder="e.g. 95.5" required>
           </div>
 
           <div class="form-group-checkbox">
@@ -46,13 +46,13 @@
           <button type="submit" id="submit-reading-btn">Evaluate Reading</button>
         </form>
 
-        <div id="result-box" class="result-box hidden">
+        <div id="result-box" class="result-box hidden" role="status">
           <h3 id="result-title">Outcome</h3>
           <div id="result-details"></div>
         </div>
 
-        <div id="error-box" class="error-box hidden">
-          <h3>Validation Error</h3>
+        <div id="error-box" class="error-box hidden" role="alert">
+          <h3 id="error-title">Validation Error</h3>
           <ul id="error-list"></ul>
         </div>
       </section>
@@ -63,7 +63,7 @@
         <div class="stats-row">
           <div class="stat-card">
             <div class="stat-value" id="stat-total-violations">0</div>
-            <div class="stat-label">Total Violations</div>
+            <div class="stat-label">Total Citations</div>
           </div>
           <div class="stat-card">
             <div class="stat-value" id="stat-total-fines">0</div>
@@ -72,18 +72,18 @@
         </div>
 
         <h3>Per-Zone Totals</h3>
-        <div class="table-scroll">
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Per-zone totals">
           <table class="data-table" id="zone-summary-table">
             <thead>
               <tr>
                 <th>Zone</th>
-                <th>Violations</th>
-                <th>Total Fines</th>
+                <th class="num">Citations</th>
+                <th class="num">Total Fines</th>
               </tr>
             </thead>
             <tbody id="zone-summary-body">
               <tr>
-                <td colspan="3" class="empty-state">No violations recorded yet.</td>
+                <td colspan="3" class="empty-state">No citations recorded yet.</td>
               </tr>
             </tbody>
           </table>
@@ -91,34 +91,35 @@
       </section>
     </div>
 
-    <!-- Recent Violations Table -->
+    <!-- Recent Citations Table -->
     <section class="card" style="margin-top: 1.5rem;">
       <div class="section-header">
-        <h2>Recent Violations</h2>
-        <div class="filter-controls">
-          <input type="text" id="filter-zone" placeholder="Filter by zone...">
-          <button type="button" id="filter-btn">Filter</button>
+        <h2>Recent citations (latest 50)</h2>
+        <form id="filter-form" class="filter-controls" role="search">
+          <input type="text" id="filter-zone" placeholder="Filter by zone..." aria-label="Filter by zone">
+          <button type="submit" id="filter-btn">Filter</button>
           <button type="button" id="reset-filter-btn" class="secondary">Reset</button>
-        </div>
+        </form>
       </div>
 
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Recent citations">
         <table class="data-table" id="violations-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Recorded At (UTC)</th>
+              <th>Observed at (UTC)</th>
               <th>Vehicle ID</th>
               <th>Zone</th>
-              <th>Speed (km/h)</th>
-              <th>Limit (km/h)</th>
-              <th>Excess (km/h)</th>
-              <th>Fine</th>
+              <th>Rule version</th>
+              <th class="num">Speed (km/h)</th>
+              <th class="num">Limit (km/h)</th>
+              <th class="num">Excess (km/h)</th>
+              <th class="num">Fine</th>
             </tr>
           </thead>
           <tbody id="violations-body">
             <tr>
-              <td colspan="8" class="empty-state">No violations recorded yet.</td>
+              <td colspan="9" class="empty-state">No citations recorded yet.</td>
             </tr>
           </tbody>
         </table>

@@ -2,7 +2,7 @@
   --bg-color: #f8fafc;
   --surface-color: #ffffff;
   --text-main: #1e293b;
-  --text-muted: #64748b;
+  --text-muted: #475569;
   --border-color: #e2e8f0;
   --primary-color: #2563eb;
   --primary-hover: #1d4ed8;
@@ -57,13 +57,13 @@ header h1 {
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.5rem;
 }
 
 @media (max-width: 768px) {
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -192,6 +192,17 @@ button.secondary:hover {
   font-size: 0.9rem;
 }
 
+.result-box h3,
+.error-box h3 {
+  margin-top: 0;
+  color: inherit;
+}
+
+.result-box .note {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
 .error-box ul {
   padding-left: 1.25rem;
   margin-top: 0.25rem;
@@ -203,7 +214,7 @@ button.secondary:hover {
 
 .stats-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -255,10 +266,31 @@ button.secondary:hover {
   color: #475569;
 }
 
+.data-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.data-table .nowrap {
+  white-space: nowrap;
+}
+
 .empty-state {
   text-align: center !important;
   color: var(--text-muted);
   padding: 1.5rem !important;
+}
+
+@media (max-width: 400px) {
+  .stats-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* keep the message in view instead of centred across the scrolling table */
+  .empty-state {
+    text-align: left !important;
+  }
 }
 
 .section-header {
@@ -276,33 +308,30 @@ button.secondary:hover {
 
 .filter-controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.filter-controls input {
+.filter-controls input[type="text"] {
   width: 180px;
+  min-width: 0;
+  flex: 1 1 140px;
 }
 
-.badge {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
-.badge-VIOLATION {
-  background-color: #fee2e2;
-  color: #b91c1c;
+.link-button {
+  background: none;
+  color: var(--primary-color);
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
 }
 
-.badge-EXEMPT {
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.badge-WITHIN_LIMIT {
-  background-color: #dcfce7;
-  color: #15803d;
+.link-button:hover {
+  background: none;
+  color: var(--primary-hover);
 }
