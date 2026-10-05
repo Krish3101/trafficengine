@@ -1,28 +1,8 @@
+# Test-only overrides. The rule sets come from the main application.yml.
 spring:
-  datasource:
-    url: jdbc:h2:mem:traffic_test_db;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    open-in-view: false
-
-traffic:
-  rules:
-    currency: INR
-    default-speed-limit-kph: 80.0
-    zone-speed-limits:
-      SCHOOL-ZONE: 30.0
-      HIGHWAY-1: 100.0
-      ZONE-A: 80.0
-      ZONE-B: 80.0
-    default-fine: 1000
-    fine-tiers:
-      - over-by-kph: 40.0
-        amount: 5000
-      - over-by-kph: 20.0
-        amount: 2000
-      - over-by-kph: 0.0
-        amount: 1000
+  main:
+    banner-mode: off
+logging:
+  level:
+    org.flywaydb: warn
+    org.hibernate: warn

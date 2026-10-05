@@ -14,4 +14,6 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - run: ./mvnw -B test
+      - run: ./mvnw -B verify
+      - name: Fail if the integration tests did not run
+        run: ls target/failsafe-reports/TEST-*.xml
