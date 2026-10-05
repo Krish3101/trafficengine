@@ -3,27 +3,63 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:traffic}
     username: ${DB_USER:traffic}
-    password: ${DB_PASSWORD:traffic}
+    password: ${DB_PASSWORD:traffic} # local docker-compose only
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
 
 server:
   port: ${PORT:8080}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+      group:
+        readiness:
+          include: readinessState,db
+
 traffic:
-  rules:
-    currency: INR
-    default-speed-limit-kph: 80.0
-    zone-speed-limits:
-      SCHOOL-ZONE: 30.0
-      HIGHWAY-1: 100.0
-    default-fine: 1000
-    fine-tiers:
-      - over-by-kph: 40.0
-        amount: 5000
-      - over-by-kph: 20.0
-        amount: 2000
-      - over-by-kph: 0.0
-        amount: 1000
+  jurisdiction-time-zone: Asia/Kolkata
+  max-reading-age: P90D
+  max-clock-skew: PT5M
+  rule-sets:
+    - version: "2026-09"
+      effective-from: 2026-01-01
+      currency: INR
+      default-speed-limit-kph: 80.00
+      zones:
+        - id: SCHOOL-ZONE
+          limit-kph: 30.00
+        - id: HIGHWAY-1
+          limit-kph: 100.00
+      fine-tiers:
+        - over-by-kph: 0.00
+          amount: 1000.00
+        - over-by-kph: 20.00
+          amount: 2000.00
+        - over-by-kph: 40.00
+          amount: 5000.00
+    - version: "2026-10"
+      effective-from: 2026-10-01
+      currency: INR
+      default-speed-limit-kph: 80.00
+      zones:
+        - id: SCHOOL-ZONE
+          limit-kph: 25.00
+        - id: HIGHWAY-1
+          limit-kph: 100.00
+      fine-tiers:
+        - over-by-kph: 0.00
+          amount: 1500.00
+        - over-by-kph: 20.00
+          amount: 3000.00
+        - over-by-kph: 40.00
+          amount: 6000.00
