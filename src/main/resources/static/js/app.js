@@ -8,19 +8,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorTitle = document.getElementById('error-title');
   const errorList = document.getElementById('error-list');
 
-  const statTotalViolations = document.getElementById('stat-total-violations');
+  const statTotalCitations = document.getElementById('stat-total-citations');
   const statTotalFines = document.getElementById('stat-total-fines');
   const statCurrencyLabel = document.getElementById('stat-currency-label');
   const zoneSummaryBody = document.getElementById('zone-summary-body');
 
-  const violationsBody = document.getElementById('violations-body');
+  const citationsBody = document.getElementById('citations-body');
   const filterForm = document.getElementById('filter-form');
   const filterZoneInput = document.getElementById('filter-zone');
   const resetFilterBtn = document.getElementById('reset-filter-btn');
 
   const OUTCOME_LABELS = {
     WITHIN_LIMIT: 'Within limit',
-    VIOLATION: 'Violation',
+    VIOLATION: 'Citation issued',
     EXEMPT: 'Exempt (emergency vehicle)'
   };
   const countFormat = new Intl.NumberFormat('en-IN');
@@ -48,8 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const vehicleId = document.getElementById('vehicleId').value.trim();
     const zone = document.getElementById('zone').value.trim();
-    const speedKphVal = document.getElementById('speedKph').value;
-    const speedKph = speedKphVal === '' ? null : parseFloat(speedKphVal);
+    const speedKphVal = document.getElementById('speedKph').value.trim();
+    // Sent as a string so the exact decimal reaches the backend's BigDecimal (no binary float)
+    const speedKph = speedKphVal === '' ? null : speedKphVal;
     const emergency = document.getElementById('emergency').checked;
 
     submitBtn.disabled = true;
@@ -177,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const summary = await response.json();
       const currency = summary.currency || 'INR';
 
-      statTotalViolations.textContent = countFormat.format(summary.totalCitations || 0);
+      statTotalCitations.textContent = countFormat.format(summary.totalCitations || 0);
       statTotalFines.textContent = money(summary.totalFineAmount, currency);
       statCurrencyLabel.textContent = `Total Fines (${currency})`;
 
@@ -194,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.error('Failed to load summary:', err);
-      statTotalViolations.textContent = '–';
+      statTotalCitations.textContent = '–';
       statTotalFines.textContent = '–';
       zoneSummaryBody.innerHTML = loadFailedRow(3);
     }
@@ -214,11 +215,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const citations = response.ok ? await response.json() : [];
 
       if (citations.length === 0) {
-        violationsBody.innerHTML = messageRow(9, zone
+        citationsBody.innerHTML = messageRow(9, zone
           ? `No citations match zone ${escapeHtml(zone)}.`
           : 'No citations recorded yet.');
       } else {
-        violationsBody.innerHTML = citations.map(c => `
+        citationsBody.innerHTML = citations.map(c => `
           <tr title="Recorded at ${utc(c.recordedAt)} UTC">
             <td>#${c.id}</td>
             <td class="nowrap">${utc(c.observedAt)}</td>
@@ -234,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.error('Failed to load citations:', err);
-      violationsBody.innerHTML = loadFailedRow(9);
+      citationsBody.innerHTML = loadFailedRow(9);
     }
   }
 

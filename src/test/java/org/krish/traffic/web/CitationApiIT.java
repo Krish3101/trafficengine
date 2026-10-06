@@ -215,6 +215,30 @@ class CitationApiIT extends AbstractIntegrationTest {
   }
 
   @Test
+  @DisplayName("POST speedKph as a JSON string \"88.15\" -> accepted, stored exactly")
+  void postSpeedAsStringStoredExactly() throws Exception {
+    postReading(
+            """
+            {"vehicleId": "KA03MM5678", "zone": "HIGHWAY-1", "speedKph": "88.15", "emergency": false}
+            """)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.outcome", is("WITHIN_LIMIT")))
+        .andExpect(jsonPath("$.speedKph", is(88.15)));
+
+    postReading(
+            """
+            {"vehicleId": "KA03MM9999", "zone": "SCHOOL-ZONE", "speedKph": "88.15", "emergency": false}
+            """)
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.outcome", is("VIOLATION")))
+        .andExpect(jsonPath("$.speedKph", is(88.15)));
+
+    assertThat(citationRepository.findAll())
+        .extracting(c -> c.getSpeedKph())
+        .containsExactly(new BigDecimal("88.15"));
+  }
+
+  @Test
   @DisplayName("POST speedKph 300.01 -> 400 with a speedKph error")
   void postSpeedAboveMaximum() throws Exception {
     postReading(
