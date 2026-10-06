@@ -58,8 +58,6 @@ public class RulesConfig {
           start,
           new RuleSet(
               rs.version(),
-              rs.effectiveFrom(),
-              start,
               rs.currency(),
               rs.defaultSpeedLimitKph(),
               zoneLimits,

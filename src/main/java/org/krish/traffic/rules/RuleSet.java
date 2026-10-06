@@ -1,16 +1,12 @@
 package org.krish.traffic.rules;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public record RuleSet(
     String version,
-    LocalDate effectiveFrom,
-    Instant effectiveFromInstant,
     String currency,
     BigDecimal defaultSpeedLimitKph,
     Map<String, BigDecimal> zoneLimits,

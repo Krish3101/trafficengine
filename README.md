@@ -144,7 +144,7 @@ The default database password in `application.yml` and `docker-compose.yml` is o
 ```
 
 - Unit tests (35): the engine (date boundaries, strict tier edges, reasons, default limit), the config validator (one test per rule plus startup failure), and that POST and GET give the same reason.
-- Integration tests (21, Testcontainers PostgreSQL): the HTTP API end to end, and `MigrationIT`, which runs the migrations over legacy rows, checks the backfill and the `NOT VALID` vehicle check, and checks that V2 aborts and rolls back on a speed like `50.00000000000001`.
+- Integration tests (24, Testcontainers PostgreSQL): the HTTP API end to end, and `MigrationIT`, which runs the migrations over legacy rows, checks the backfill and the `NOT VALID` vehicle check, and checks that V2 aborts and rolls back on a speed like `50.00000000000001`.
 
 ## Deploy (Render)
 

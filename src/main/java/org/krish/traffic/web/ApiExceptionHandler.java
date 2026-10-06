@@ -12,6 +12,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -86,6 +87,16 @@ public class ApiExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ProblemDetail> handleGeneralException(Exception ex) {
+    // other framework 4xx errors (415, 406, missing parameter, ...) keep their own status
+    if (ex instanceof ErrorResponse errorResponse) {
+      HttpStatus status = HttpStatus.valueOf(errorResponse.getStatusCode().value());
+      ResponseEntity<ProblemDetail> body =
+          respond(status, errorResponse.getBody().getDetail(), null);
+      return ResponseEntity.status(status)
+          .headers(errorResponse.getHeaders())
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(body.getBody());
+    }
     log.error("Unexpected error", ex);
     return respond(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", null);
   }

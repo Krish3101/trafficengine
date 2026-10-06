@@ -26,8 +26,6 @@ class CitationMapperTest {
     RuleSet rules =
         new RuleSet(
             "2026-09",
-            null,
-            START,
             "INR",
             new BigDecimal("80.00"),
             Map.of("SCHOOL-ZONE", new BigDecimal("30.00")),

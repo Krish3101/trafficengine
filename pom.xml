@@ -13,9 +13,21 @@
 
     <groupId>org.krish</groupId>
     <artifactId>trafficengine</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>trafficengine</name>
-    <description>Traffic Rule Engine service</description>
+    <description>Scores speed readings against time-versioned rule sets and computes tiered fines.</description>
+    <url>https://github.com/Krish3101/trafficengine</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Krish Kalya</name>
+        </developer>
+    </developers>
 
     <properties>
         <java.version>21</java.version>

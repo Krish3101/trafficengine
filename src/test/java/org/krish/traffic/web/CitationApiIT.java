@@ -397,4 +397,30 @@ class CitationApiIT extends AbstractIntegrationTest {
     mockMvc.perform(get("/api/violations")).andExpect(status().isNotFound());
     mockMvc.perform(get("/api/readings")).andExpect(status().isMethodNotAllowed());
   }
+
+  @Test
+  @DisplayName("POST with text/plain or no Content-Type -> 415 ProblemDetail, not 500")
+  void unsupportedMediaType() throws Exception {
+    String body = "{\"vehicleId\": \"KA03MM1234\", \"zone\": \"highway-1\", \"speedKph\": 130}";
+    mockMvc
+        .perform(post("/api/readings").contentType(MediaType.TEXT_PLAIN).content(body))
+        .andExpect(status().isUnsupportedMediaType())
+        .andExpect(jsonPath("$.status", is(415)))
+        .andExpect(jsonPath("$.title", is("Unsupported Media Type")));
+    mockMvc
+        .perform(post("/api/readings").content(body))
+        .andExpect(status().isUnsupportedMediaType())
+        .andExpect(jsonPath("$.status", is(415)));
+    assertThat(citationRepository.count()).isZero();
+  }
+
+  @Test
+  @DisplayName("GET /api/citations with Accept: application/xml -> 406 ProblemDetail, not 500")
+  void notAcceptable() throws Exception {
+    mockMvc
+        .perform(get("/api/citations").accept(MediaType.APPLICATION_XML))
+        .andExpect(status().isNotAcceptable())
+        .andExpect(jsonPath("$.status", is(406)))
+        .andExpect(jsonPath("$.title", is("Not Acceptable")));
+  }
 }

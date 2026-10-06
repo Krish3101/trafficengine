@@ -31,8 +31,6 @@ class SpeedRuleEngineTest {
     RuleSet set1 =
         new RuleSet(
             "2026-09",
-            d1,
-            sepBoundary,
             "INR",
             new BigDecimal("80.00"),
             Map.of(
@@ -50,8 +48,6 @@ class SpeedRuleEngineTest {
     RuleSet set2 =
         new RuleSet(
             "2026-10",
-            d2,
-            octBoundary,
             "INR",
             new BigDecimal("80.00"),
             Map.of(
