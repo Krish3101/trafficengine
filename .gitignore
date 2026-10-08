@@ -11,7 +11,3 @@ target/
 
 # OS
 .DS_Store
-
-# Agent & planning rules
-AGENTS.md
-PLAN.md
