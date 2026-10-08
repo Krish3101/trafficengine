@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Traffic Rule Engine</title>
+  <title>Traffic Engine</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232563eb'/%3E%3Ctext x='16' y='23' font-size='19' font-family='sans-serif' font-weight='700' text-anchor='middle' fill='white'%3ET%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header>
     <div class="container">
-      <h1>Traffic Rule Engine</h1>
+      <h1>Traffic Engine</h1>
       <p class="subtitle">Speed readings in, fines out. Each reading is judged by the rule version in force when it was observed.</p>
     </div>
   </header>
@@ -33,7 +33,12 @@
 
           <div class="form-group">
             <label for="speedKph">Speed (km/h)</label>
-            <input type="number" id="speedKph" name="speedKph" step="any" min="0" max="300" placeholder="e.g. 95.5" required>
+            <input type="number" id="speedKph" name="speedKph" inputmode="decimal" step="0.01" min="1" max="300" placeholder="e.g. 95.5" required>
+          </div>
+
+          <div class="form-group">
+            <label for="observedAt">Observed at (optional, India time)</label>
+            <input type="datetime-local" id="observedAt" name="observedAt">
           </div>
 
           <div class="form-group-checkbox">
@@ -67,18 +72,19 @@
           </div>
           <div class="stat-card">
             <div class="stat-value" id="stat-total-fines">0</div>
-            <div class="stat-label" id="stat-currency-label">Total Fines</div>
+            <div class="stat-label">Total Fines (₹)</div>
           </div>
         </div>
 
         <h3>Per-Zone Totals</h3>
         <div class="table-scroll" tabindex="0" role="region" aria-label="Per-zone totals">
           <table class="data-table" id="zone-summary-table">
+            <caption class="sr-only">Aggregate citations and total fines per zone</caption>
             <thead>
               <tr>
-                <th>Zone</th>
-                <th class="num">Citations</th>
-                <th class="num">Total Fines</th>
+                <th scope="col">Zone</th>
+                <th scope="col" class="num">Citations</th>
+                <th scope="col" class="num">Total Fines</th>
               </tr>
             </thead>
             <tbody id="zone-summary-body">
@@ -104,22 +110,22 @@
 
       <div class="table-scroll" tabindex="0" role="region" aria-label="Recent citations">
         <table class="data-table" id="citations-table">
+          <caption class="sr-only">Most recent 50 citations, optionally filtered by zone</caption>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Observed at (UTC)</th>
-              <th>Vehicle ID</th>
-              <th>Zone</th>
-              <th>Rule version</th>
-              <th class="num">Speed (km/h)</th>
-              <th class="num">Limit (km/h)</th>
-              <th class="num">Excess (km/h)</th>
-              <th class="num">Fine</th>
+              <th scope="col">ID</th>
+              <th scope="col">Observed at (IST)</th>
+              <th scope="col">Vehicle ID</th>
+              <th scope="col">Zone</th>
+              <th scope="col">Rule version</th>
+              <th scope="col" class="num">Speed (km/h)</th>
+              <th scope="col" class="num">Limit (km/h)</th>
+              <th scope="col" class="num">Fine</th>
             </tr>
           </thead>
           <tbody id="citations-body">
             <tr>
-              <td colspan="9" class="empty-state">No citations recorded yet.</td>
+              <td colspan="8" class="empty-state">No citations recorded yet.</td>
             </tr>
           </tbody>
         </table>

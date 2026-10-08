@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const statTotalCitations = document.getElementById('stat-total-citations');
   const statTotalFines = document.getElementById('stat-total-fines');
-  const statCurrencyLabel = document.getElementById('stat-currency-label');
   const zoneSummaryBody = document.getElementById('zone-summary-body');
 
   const citationsBody = document.getElementById('citations-body');
@@ -26,18 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const countFormat = new Intl.NumberFormat('en-IN');
 
   // en-IN on purpose, so ₹ amounts use lakh grouping (₹1,00,000) whatever the browser locale
-  function money(amount, currency) {
+  function money(amount) {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: currency || 'INR',
+      currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     }).format(Number(amount || 0));
   }
 
-  // "2026-09-30 18:29:59"
-  function utc(instant) {
-    return new Date(instant).toISOString().replace('T', ' ').substring(0, 19);
+  // India time, because rule sets start at midnight in India
+  const istFormat = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short'
+  });
+  function ist(instant) {
+    return istFormat.format(new Date(instant));
   }
 
   refresh();
@@ -52,13 +54,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sent as a string so the exact decimal reaches the backend's BigDecimal (no binary float)
     const speedKph = speedKphVal === '' ? null : speedKphVal;
     const emergency = document.getElementById('emergency').checked;
+    // datetime-local has no zone; the form asks for India time
+    const observedAtVal = document.getElementById('observedAt').value;
+    const observedAt = observedAtVal ? `${observedAtVal}:00+05:30` : null;
 
     submitBtn.disabled = true;
+    submitBtn.setAttribute('aria-busy', 'true');
     try {
       const response = await fetch('/api/readings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vehicleId, zone, speedKph, emergency })
+        body: JSON.stringify({ vehicleId, zone, speedKph, emergency, observedAt })
       });
       const data = await response.json();
 
@@ -74,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showGenericError('Failed to communicate with the server.');
     } finally {
       submitBtn.disabled = false;
+      submitBtn.removeAttribute('aria-busy');
     }
   });
 
@@ -123,17 +130,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (data.outcome === 'VIOLATION' && data.citation) {
       html += `
-        <p><strong>Fine:</strong> ${money(data.citation.fineAmount, data.currency)}</p>
+        <p><strong>Fine:</strong> ${money(data.citation.fineAmount)}</p>
+        <p><strong>Rule version:</strong> ${escapeHtml(data.citation.ruleSetVersion)}</p>
         <p><strong>Citation ID:</strong> #${data.citation.id}</p>
       `;
     } else if (data.outcome === 'EXEMPT') {
       html += `<p><em>Vehicle exempt due to emergency status. No citation recorded.</em></p>`;
     } else {
       html += `<p><em>Vehicle within speed limit. No citation recorded.</em></p>`;
-    }
-
-    if (data.defaultLimit) {
-      html += `<p class="note">Zone not configured: general limit used.</p>`;
     }
 
     resultDetails.innerHTML = html;
@@ -175,21 +179,21 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await fetch('/api/analytics/summary');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const summary = await response.json();
-      const currency = summary.currency || 'INR';
+      const zones = await response.json();
+      const totalCitations = zones.reduce((sum, z) => sum + z.count, 0);
+      const totalFines = zones.reduce((sum, z) => sum + Number(z.fineTotal), 0);
 
-      statTotalCitations.textContent = countFormat.format(summary.totalCitations || 0);
-      statTotalFines.textContent = money(summary.totalFineAmount, currency);
-      statCurrencyLabel.textContent = `Total Fines (${currency})`;
+      statTotalCitations.textContent = countFormat.format(totalCitations);
+      statTotalFines.textContent = money(totalFines);
 
-      if (!summary.zones || summary.zones.length === 0) {
+      if (zones.length === 0) {
         zoneSummaryBody.innerHTML = messageRow(3, 'No citations recorded yet.');
       } else {
-        zoneSummaryBody.innerHTML = summary.zones.map(z => `
+        zoneSummaryBody.innerHTML = zones.map(z => `
           <tr>
             <td><strong>${escapeHtml(z.zone)}</strong></td>
-            <td class="num">${countFormat.format(z.citations || 0)}</td>
-            <td class="num">${money(z.fineAmount, currency)}</td>
+            <td class="num">${countFormat.format(z.count)}</td>
+            <td class="num">${money(z.fineTotal)}</td>
           </tr>
         `).join('');
       }
@@ -204,9 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadCitations() {
     const zone = filterZoneInput.value.trim();
     try {
-      let url = '/api/citations?limit=50';
+      let url = '/api/citations';
       if (zone) {
-        url += `&zone=${encodeURIComponent(zone)}`;
+        url += `?zone=${encodeURIComponent(zone)}`;
       }
 
       const response = await fetch(url);
@@ -215,27 +219,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const citations = response.ok ? await response.json() : [];
 
       if (citations.length === 0) {
-        citationsBody.innerHTML = messageRow(9, zone
+        citationsBody.innerHTML = messageRow(8, zone
           ? `No citations match zone ${escapeHtml(zone)}.`
           : 'No citations recorded yet.');
       } else {
         citationsBody.innerHTML = citations.map(c => `
-          <tr title="Recorded at ${utc(c.recordedAt)} UTC">
+          <tr title="${escapeHtml(c.reason)}">
             <td>#${c.id}</td>
-            <td class="nowrap">${utc(c.observedAt)}</td>
+            <td class="nowrap">${ist(c.observedAt)}</td>
             <td><strong>${escapeHtml(c.vehicleId)}</strong></td>
             <td>${escapeHtml(c.zone)}</td>
             <td class="nowrap">${escapeHtml(c.ruleSetVersion)}</td>
             <td class="num">${c.speedKph}</td>
             <td class="num">${c.speedLimitKph}</td>
-            <td class="num">${c.excessKph}</td>
-            <td class="num" title="${escapeHtml(c.reason)}">${money(c.fineAmount, c.currency)}</td>
+            <td class="num">${money(c.fineAmount)}</td>
           </tr>
         `).join('');
       }
     } catch (err) {
       console.error('Failed to load citations:', err);
-      citationsBody.innerHTML = loadFailedRow(9);
+      citationsBody.innerHTML = loadFailedRow(8);
     }
   }
 

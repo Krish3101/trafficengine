@@ -1,8 +1,0 @@
-# Test-only overrides. The rule sets come from the main application.yml.
-spring:
-  main:
-    banner-mode: off
-logging:
-  level:
-    org.flywaydb: warn
-    org.hibernate: warn

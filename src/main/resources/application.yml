@@ -1,9 +1,9 @@
-# The defaults match docker-compose.yml. On a server, set the DB_* variables instead.
+# The defaults match the docker run line in the README. On a server, set the DB_* variables.
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:traffic}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:traffic}
     username: ${DB_USER:traffic}
-    password: ${DB_PASSWORD:traffic} # local docker-compose only
+    password: ${DB_PASSWORD:traffic} # local container only
   jpa:
     hibernate:
       ddl-auto: validate
@@ -12,28 +12,11 @@ spring:
 server:
   port: ${PORT:8080}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      probes:
-        enabled: true
-      show-details: never
-      group:
-        readiness:
-          include: readinessState,db
-
 traffic:
   jurisdiction-time-zone: Asia/Kolkata
-  max-reading-age: P90D
-  max-clock-skew: PT5M
   rule-sets:
     - version: "2026-09"
       effective-from: 2026-01-01
-      currency: INR
       default-speed-limit-kph: 80.00
       zones:
         - id: SCHOOL-ZONE
@@ -49,7 +32,6 @@ traffic:
           amount: 5000.00
     - version: "2026-10"
       effective-from: 2026-10-01
-      currency: INR
       default-speed-limit-kph: 80.00
       zones:
         - id: SCHOOL-ZONE
