@@ -11,5 +11,5 @@ WORKDIR /app
 RUN useradd -r -u 10001 app
 COPY --from=build /app/target/*.jar app.jar
 USER 10001
-EXPOSE 8080
+EXPOSE 10000 8080
 CMD ["java", "-XX:MaxRAMPercentage=55", "-XX:+ExitOnOutOfMemoryError", "-jar", "app.jar"]
