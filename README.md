@@ -2,8 +2,6 @@
 
 Speeding rules change over time, so a reading taken on 30 September must be fined by September's rules even if it reaches the server in October. Traffic Engine picks the rule set that was in force on the reading's date, works out the fine, and stores a citation that names the rule version and explains the amount.
 
-![screenshot](screenshot.png)
-
 ## Run (macOS)
 
 Needs Java 21 (`brew install --cask temurin@21`) and Docker Desktop.
